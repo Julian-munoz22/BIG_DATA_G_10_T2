@@ -12,6 +12,12 @@ library(stringi)
 
 
 # Cargar las librerías listadas e instalarlas en caso de ser necesario
+library(pacman)
+library(leaflet)
+library(stringi)
+
+
+# Cargar las librerías listadas e instalarlas en caso de ser necesario
 p_load(tidyverse, # Manipular dataframes
        rio, # Import data easily
        plotly, # Gráficos interactivos
@@ -27,7 +33,13 @@ p_load(tidyverse, # Manipular dataframes
        VIM,
        discrim,
        kknn,
-       stargazer) 
+       stargazer,
+       yardstick,
+       GGally,
+       rattle,
+       randomForest,
+       C50,
+       caret) 
 
 test <- read_csv("C:/Users/Hp/Documents/MeCA - Big Data and Machine Learning/Set_2/Set_2/test.csv")
 train <- read_csv("C:/Users/Hp/Documents/MeCA - Big Data and Machine Learning/Set_2/Set_2/train.csv")
@@ -126,12 +138,19 @@ leaflet() %>%
   addCircles(lng= train$lon,
              lat= train$lat)
 
-limites <- getbb("Localidad Chapinero") #b box
+limites <- getbb("Bogotá Colombia") #b box
+limites2 <- getbb("Localidad Chapinero") #b box
 
 train <- train %>%
   filter(
     between(lon, limites[1, "min"], limites[1, "max"]) &
       between(lat, limites[2, "min"], limites[2, "max"])
+  )
+
+test <- test %>%
+  filter(
+    between(lon, limites2[1, "min"], limites2[1, "max"]) &
+      between(lat, limites2[2, "min"], limites2[2, "max"])
   )
 
 train <- train %>%
@@ -169,3 +188,14 @@ m <- leaflet() %>%
              radius = train$precio_por_mt2_sc*10,
              popup = html)
 
+train$property_type <- as.factor(train$property_type)
+str(train$property_type)
+
+
+ggpairs(train, columns = 2:8, aes(colour = property_type),
+        lower = list(continuous = "points", combo = "facethist"),
+        diag = list(continuous = "barDiag", combo = "densityDiag")) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "white"),
+        axis.text = element_blank(),  # Ocultar etiquetas de los ejes
+        axis.title = element_blank())  # Ocultar títulos de los ejes
